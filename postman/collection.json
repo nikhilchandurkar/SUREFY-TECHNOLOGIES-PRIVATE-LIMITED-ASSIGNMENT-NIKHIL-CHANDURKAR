@@ -1,0 +1,211 @@
+{
+  "info": {
+    "name": "Event Management API",
+    "_postman_id": "event-api-12345",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "eventId", "value": "" },
+    { "key": "userId", "value": "1" }
+  ],
+  "item": [
+    {
+      "name": "Create Event",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": {
+          "raw": "http://localhost:3000/api/events",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "events"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Test Event\",\n  \"eventDate\": \"2025-12-25T15:00:00Z\",\n  \"location\": \"Delhi\",\n  \"capacity\": 100\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Event created\", function () {",
+              "  pm.response.to.have.status(201);",
+              "  var json = pm.response.json();",
+              "  pm.environment.set(\"eventId\", json.eventId);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Get Event Details",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "http://localhost:3000/api/events/{{eventId}}",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "events", "{{eventId}}"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Fetched event details\", function () {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.json()).to.have.property(\"id\", parseInt(pm.environment.get(\"eventId\")));",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Register User to Event",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": {
+          "raw": "http://localhost:3000/api/events/{{eventId}}/register",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "events", "{{eventId}}", "register"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": {{userId}}\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"User registered\", function () {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.json().message).to.eql(\"Registered successfully\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Prevent Double Registration",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": {
+          "raw": "http://localhost:3000/api/events/{{eventId}}/register",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "events", "{{eventId}}", "register"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": {{userId}}\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Should fail on double registration\", function () {",
+              "  pm.response.to.have.status(409);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Get Event Stats",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "http://localhost:3000/api/events/{{eventId}}/stats",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "events", "{{eventId}}", "stats"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Stats received\", function () {",
+              "  pm.response.to.have.status(200);",
+              "  var stats = pm.response.json();",
+              "  pm.expect(stats).to.have.property(\"totalRegistrations\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cancel Registration",
+      "request": {
+        "method": "DELETE",
+        "url": {
+          "raw": "http://localhost:3000/api/events/{{eventId}}/register/{{userId}}",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "events", "{{eventId}}", "register", "{{userId}}"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Cancelled registration\", function () {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.json().message).to.eql(\"Registration cancelled\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "List Upcoming Events",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "http://localhost:3000/api/events/upcoming/list",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "events", "upcoming", "list"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Upcoming events fetched\", function () {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.json()).to.be.an('array');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    }
+  ]
+}
