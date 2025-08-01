@@ -155,3 +155,154 @@ export const getEventStats = async (req, res, next) => {
 };
 
 
+
+export const listAllEventsWithUsers = async (req, res, next) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const events = await prisma.event.findMany({
+      skip,
+      take: limit,
+      include: {
+        registrations: {
+          include: {
+            user: true,
+          },
+        },
+      },
+      orderBy: {
+        eventDate: 'asc',
+      },
+    });
+
+    const total = await prisma.event.count();
+
+    res.json({
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+      events,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+
+
+
+export const listEventsSorted = async (req, res, next) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+console.log("sorted")
+    const events = await prisma.event.findMany({
+      skip,
+      take: limit,
+      include: {
+        registrations: {
+          include: { user: true },
+        },
+      },
+      orderBy: [
+        { eventDate: 'asc' },       
+        { location: 'asc' },        
+      ],
+    });
+
+    const total = await prisma.event.count();
+
+    res.json({
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+      events,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+
+
+
+
+// export const  test = async (req, res, next) => {
+//   try {
+//     const { id } = req.parmas.id;
+//     console.log(id)
+//     const event = await prisma.event.findMany(
+//       {
+//       where: { id: parseInt(id),
+//       eventDate: {
+// 			gte: new Date('2025-07-01').toISOString(),  // start 
+// 			lte: new Date('2023-08-01').toISOString(),  //end
+// 		},
+//        },
+//       include: {
+//         registrations: {
+//           include: { user: true },
+//         },
+        
+//       },
+//     }
+//   )
+//   const total = await prisma.event.count();
+//     if (!event) return res.status(404).json({ error: 'Event not found' });
+
+//     res.json(
+//       {
+//       event,
+//       total
+//       }
+//     );
+//   } catch (err) {
+//     next(err);
+//   }
+// }
+
+
+
+
+
+export const getUserEventsLast30Days = async (req, res, next) => {
+  try {
+    const { userId} = req.params;
+
+    const today = new Date();
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(today.getDate() - 30);
+
+    const registrations = await prisma.eventRegistration.findMany({
+      where: {
+        userId: parseInt(userId),
+        event: {
+          eventDate: {
+            gte: thirtyDaysAgo,
+            lte: today,
+          },
+        },
+      },
+      include: {
+        event: true,
+      },
+    });
+
+    const events = registrations.map((r) => r.event);
+
+    res.json({
+      userId: parseInt(userId),
+      from: thirtyDaysAgo.toISOString(),
+      to: today.toISOString(),
+      count: events.length,
+      events,
+    });
+  } catch (err) {
+    next(err);
+  }
+};

@@ -1,6 +1,12 @@
 
 import dotenv from 'dotenv';
-dotenv.config();
+dotenv.config(
+  { 
+    path: '.env',
+    debug: false ,
+    quiet: true
+ }
+);
 
 import app from './src/app.js';
 
